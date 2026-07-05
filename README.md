@@ -1,14 +1,5 @@
 **🚨 Disaster Relief Resource Locator**  
 A serverless, event-driven web application designed to provide real-time tracking of critical life-saving resources (shelters, food, medical) during natural disasters. Built with a decoupled architecture to ensure high availability and automatic scaling when communities need it most.  
-   
- ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAADUlEQVR4nGP4//8/AwAI/AL+p5qgoAAAAABJRU5ErkJggg==)  
-   
- ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAADUlEQVR4nGP4//8/AwAI/AL+p5qgoAAAAABJRU5ErkJggg==)  
-   
- ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAADUlEQVR4nGP4//8/AwAI/AL+p5qgoAAAAABJRU5ErkJggg==)  
-   
- ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAADUlEQVR4nGP4//8/AwAI/AL+p5qgoAAAAABJRU5ErkJggg==)  
-
  
 **📖 Business Problem & Solution**  
 **The Problem:** During sudden disasters (hurricanes, earthquakes), traditional centralized servers often crash under the sudden spike in traffic from citizens seeking help. Furthermore, emergency responders need a way to dynamically register new resource points (e.g., a tent city erected overnight) without waiting for IT deployments.  
@@ -19,20 +10,20 @@ A serverless, event-driven web application designed to provide real-time trackin
    
 **🏛️ Architecture Diagram**  
    
-** ** **                     👤 Citizen / Admin Browser**  
-**                      /                     \**  
-**                  HTTPS                  REST API/WebSocket**  
-**                    |                           |**  
-**             ☁️ CloudFront CDN         🔗 Amazon API Gateway**  
-**                    |                           |**  
-**        Origin Access Control                  |**  
-**                    |                           |**  
-**         🪣 Amazon S3 (Frontend)        ⚡ AWS Lambda (Python)**  
-**                                                |**  
-**                                         PutItem / Scan**  
-**                                                |**  
-**                                         🗄️ Amazon DynamoDB**  
-** **
+                      👤 Citizen / Admin Browser**  
+                       /                     \  
+                  HTTPS                  REST API/WebSocket  
+                     |                           |  
+           ☁️ CloudFront CDN         🔗 Amazon API Gateway  
+                      |                           |  
+        Origin Access Control                  |  
+                      |                           |  
+           🪣 Amazon S3 (Frontend)        ⚡ AWS Lambda (Python) 
+                                                  |  
+                                           PutItem / Scan  
+                                                  |  
+                                           🗄️ Amazon DynamoDB  
+  
   
 **🛠️ Technology Stack**  
 - **Frontend:** HTML5, Tailwind CSS, Vanilla JavaScript (ES6+), Leaflet.js (OpenStreetMap)  
@@ -40,7 +31,8 @@ A serverless, event-driven web application designed to provide real-time trackin
 - **Database:** Amazon DynamoDB (NoSQL, Single-Table Design)  
 - **API:** Amazon API Gateway (REST API with CORS MOCK integration)  
 - **Content Delivery:** Amazon CloudFront (CDN with Edge Functions for clean URLs)  
-- **Infrastructure as Code:** Terraform (AWS Provider - 100% from scratch)  
+- **Infrastructure as Code:** Terraform (AWS Provider - 100% from scratch)
+  
 **☁️ AWS Well-Architected Framework Alignment**  
 This project was designed with the five pillars of the AWS Well-Architected Framework in mind:  
 **1. Operational Excellence**  
@@ -49,16 +41,20 @@ This project was designed with the five pillars of the AWS Well-Architected Fram
 **2. Security**  
 - **Least Privilege Access:** The Lambda execution role is scoped strictly to only the specific DynamoDB table actions required (PutItem, Scan, etc.).  
 - **S3 Security:** The frontend S3 bucket has public access fully blocked. Access is granted exclusively to CloudFront via Origin Access Control (OAC).  
-- **No Root Credentials:** Local deployment utilizes a dedicated IAM user with programmatic access, rather than root account keys.  
+- **No Root Credentials:** Local deployment utilizes a dedicated IAM user with programmatic access, rather than root account keys.
+- 
 **3. Reliability**  
-- **Multi-AZ by Default:** By utilizing managed services (Lambda, DynamoDB, API Gateway), the application automatically benefits from AWS's multi-AZ redundancy.  
-- **Decoupled Architecture:** The frontend (S3) is completely decoupled from the backend (API Gateway/Lambda). If the backend experiences issues, the frontend UI remains available.  
+- **Multi-AZ by Default:** By utilizing managed services (Lambda, DynamoDB, API Gateway), the application automatically benefits from AWS's multi-AZ redundancy.
+- 
+- **Decoupled Architecture:** The frontend (S3) is completely decoupled from the backend (API Gateway/Lambda). If the backend experiences issues, the frontend UI remains available.
+- 
 **4. Performance Efficiency**  
 - **Edge Computing:** Utilized CloudFront Functions to execute URL rewriting (/citizen -> /citizen.html) at the edge location, reducing origin latency.  
 - **Serverless Compute:** Lambda functions only spin up when an API request is made, ensuring zero idle compute resources.  
 - **CDN Caching:** Static assets are cached globally at CloudFront edge locations for sub-millisecond load times.  
 **5. Cost Optimization**  
-- **Pay-Per-Use:** 100% Serverless architecture. DynamoDB uses On-Demand capacity. The application scales to zero, costing approximately $0.00 when not in use, making it highly viable for disaster scenarios where budget is a concern.  
+- **Pay-Per-Use:** 100% Serverless architecture. DynamoDB uses On-Demand capacity. The application scales to zero, costing approximately $0.00 when not in use, making it highly viable for disaster scenarios where budget is a concern.
+  
 **🚀 Deployment Guide**  
 **Prerequisites**  
 - AWS CLI installed and configured with an IAM user's Access Keys.  
