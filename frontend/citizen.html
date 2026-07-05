@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Find Emergency Resources</title>
+    
+    <!-- Tailwind & Leaflet -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .leaflet-container { height: 100%; width: 100%; }
+        #bottomSheet { transition: transform 0.3s ease-in-out; }
+        .sheet-collapsed { transform: translateY(calc(100% - 60px)); }
+        .sheet-expanded { transform: translateY(0); }
+    </style>
+</head>
+<body class="bg-gray-100 h-screen flex flex-col overflow-hidden">
+
+    <!-- Mobile Header -->
+    <header class="bg-red-700 text-white shadow-md z-[1000] p-3 flex justify-between items-center">
+        <div class="flex items-center gap-2">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <h1 class="text-lg font-bold">Find Shelter & Aid</h1>
+        </div>
+        <button id="locateBtn" class="bg-white text-red-700 text-xs font-bold px-3 py-1.5 rounded-full">My Location</button>
+    </header>
+
+    <!-- Map -->
+    <main class="flex-1 relative">
+        <div id="map" class="absolute inset-0 z-0"></div>
+    </main>
+
+    <!-- Bottom Sheet for Resource List (Mobile UX) -->
+    <div id="bottomSheet" class="absolute bottom-0 left-0 right-0 bg-white shadow-2xl rounded-t-xl z-[1000] h-1/2 sheet-collapsed flex flex-col">
+        <div class="p-3 border-b border-gray-200 flex justify-between items-center cursor-pointer" id="sheetHandle">
+            <h2 class="font-bold text-gray-800">Nearby Resources</h2>
+            <span id="count" class="text-xs bg-gray-200 px-2 py-1 rounded-full">0</span>
+        </div>
+        <div id="resourceList" class="flex-1 overflow-y-auto p-3 space-y-2">
+            <div class="text-sm text-gray-500 text-center py-4">Fetching data...</div>
+        </div>
+    </div>
+
+    <script>
+        // REPLACE THIS WITH YOUR TERRAFORM OUTPUT URL
+        const REST_API_URL = "https://752m1f1vfh.execute-api.us-east-1.amazonaws.com/prod/resources";
+
+        let map;
+        let markers = [];
+        let resources = [];
+        let userLocation = null;
+
+        function initMap() {
+            map = L.map('map').setView([40.7128, -74.0060], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+        }
+
+        // Find User GPS Location
+        document.getElementById('locateBtn').addEventListener('click', () => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    userLocation = [pos.coords.latitude, pos.coords.longitude];
+                    map.setView(userLocation, 14);
+                    
+                    // Add user marker
+                    L.marker(userLocation, {
+                        icon: L.divIcon({
+                            html: `<div style="background-color: #3b82f6; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);"></div>`,
+                            iconSize: [16, 16], iconAnchor: [8, 8]
+                        })
+                    }).addTo(map).bindPopup("<b>You are here</b>").openPopup();
+                });
+            } else {
+                alert("Geolocation is not supported by your browser.");
+            }
+        });
+
+        // Fetch resources from AWS
+        async function fetchResources() {
+            try {
+                const response = await fetch(REST_API_URL);
+                resources = await response.json();
+                renderList();
+                renderMarkers();
+            } catch (error) {
+                document.getElementById('resourceList').innerHTML = '<div class="text-sm text-red-500 text-center">Failed to load resources.</div>';
+            }
+        }
+
+        function renderList() {
+            const list = document.getElementById('resourceList');
+            document.getElementById('count').innerText = resources.length;
+            list.innerHTML = '';
+
+            if (resources.length === 0) {
+                list.innerHTML = '<div class="text-sm text-gray-500 text-center">No resources found.</div>';
+                return;
+            }
+
+            resources.forEach(r => {
+                const statusColors = { 'Open': 'text-green-600', 'At Capacity': 'text-yellow-600', 'Closed': 'text-red-600' };
+                
+                // Google Maps Directions URL
+                const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}`;
+
+                const card = document.createElement('div');
+                card.className = 'p-3 border border-gray-200 rounded-lg shadow-sm';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <h3 class="font-bold text-gray-800 text-sm">📍 ${r.name}</h3>
+                        <span class="text-xs font-semibold ${statusColors[r.status]}">${r.status}</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">${r.type} • Cap: ${r.capacity}</p>
+                    <a href="${mapsUrl}" target="_blank" class="mt-2 block text-center bg-blue-600 text-white text-xs font-bold py-2 rounded-md">
+                        Get Directions
+                    </a>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function renderMarkers() {
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+
+            resources.forEach(r => {
+                if(r.status === 'Closed') return; // Don't show closed shelters to citizens on the map
+
+                const markerColors = { 'Open': 'green', 'At Capacity': 'gold' };
+                const color = markerColors[r.status] || 'blue';
+                
+                const icon = L.divIcon({
+                    html: `<div style="background-color: ${color}; width: 18px; height: 18px; border-radius: 50%; border: 3px solid white;"></div>`,
+                    iconSize: [18, 18], iconAnchor: [9, 9]
+                });
+
+                const marker = L.marker([r.lat, r.lng], { icon }).addTo(map);
+                marker.bindPopup(`<b>${r.name}</b><br>${r.type}<br>Status: ${r.status}`);
+                markers.push(marker);
+            });
+        }
+
+        // Bottom Sheet Toggle Logic (Mobile UX)
+        document.getElementById('sheetHandle').addEventListener('click', () => {
+            const sheet = document.getElementById('bottomSheet');
+            sheet.classList.toggle('sheet-collapsed');
+            sheet.classList.toggle('sheet-expanded');
+        });
+
+        // Initialize
+        initMap();
+        fetchResources();
+    </script>
+</body>
+</html>
