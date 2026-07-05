@@ -8,6 +8,8 @@ A serverless, event-driven web application designed to provide real-time trackin
  ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAADUlEQVR4nGP4//8/AwAI/AL+p5qgoAAAAABJRU5ErkJggg==)  
    
  ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAADUlEQVR4nGP4//8/AwAI/AL+p5qgoAAAAABJRU5ErkJggg==)  
+
+ 
 **📖 Business Problem & Solution**  
 **The Problem:** During sudden disasters (hurricanes, earthquakes), traditional centralized servers often crash under the sudden spike in traffic from citizens seeking help. Furthermore, emergency responders need a way to dynamically register new resource points (e.g., a tent city erected overnight) without waiting for IT deployments.  
    
@@ -15,13 +17,6 @@ A serverless, event-driven web application designed to provide real-time trackin
 - **Admin Dashboard:** Allows responders to dynamically drop pins on a map, geocode addresses, and define custom resource types on the fly.  
 - **Citizen Portal:** A mobile-first, lightweight interface that uses HTML5 Geolocation to show citizens nearby open shelters and provides one-click Google Maps navigation.  
    
-    
-   
-    
-   
-    
-   
-    
 **🏛️ Architecture Diagram**  
    
 ** ** **                     👤 Citizen / Admin Browser**  
@@ -37,7 +32,8 @@ A serverless, event-driven web application designed to provide real-time trackin
 **                                         PutItem / Scan**  
 **                                                |**  
 **                                         🗄️ Amazon DynamoDB**  
-** **  
+** **
+  
 **🛠️ Technology Stack**  
 - **Frontend:** HTML5, Tailwind CSS, Vanilla JavaScript (ES6+), Leaflet.js (OpenStreetMap)  
 - **Backend:** Python 3.9 (AWS Lambda)  
